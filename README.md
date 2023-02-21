@@ -1,6 +1,6 @@
 # Effect of climate and competition on future northward migration of temperate tree species into mixedwood boreal forest
 
-This repository contains the R code and data to retrieve the results and graphs from the "DOI of the article when available" study. We aimed to determine if future climate and competition are factors that prevent the colonization of temperate species, i.e., sugar maple, red maple, and yellow birch, from becoming established just above their continuous northern limit of distribution. 
+This repository contains the R code and data to retrieve the results and graphs from the "DOI of the article when available" study. We aimed to determine if future climate and competition are factors that limit or falicitate the colonization of temperate species, i.e., sugar maple, red maple, and yellow birch, just above their continuous northern limit of distribution. 
 
 ## Citation 
 
