@@ -1,0 +1,200 @@
+rm(list=ls())
+
+#Si ?a ne fonctionne pas, voir dansPhD/Colab/Marion
+
+library(leaflet)
+library(tidyverse)
+library(ggthemes)
+library(mapview)
+library(rgdal)
+library(htmlwidgets)
+library(leaflegend)
+library(sf)
+library(maps)
+library(ggspatial)
+library(ggnewscale)
+library(rgeos)
+library(grid)
+library(ggplotify)
+library(cowplot)
+library(ggpubr)
+library(viridis)
+#Ok save image in pdf and maybe opacity of labels
+
+data <- data.frame(ID="FERLD", lat=48.46588, long=-79.34152)
+
+dom_bio <- readOGR(dsn = "shp/sous_dom_bioclim.shp",
+                   layer = "sous_dom_bioclim")
+
+lim_ers <- readOGR(dsn = "shp/ERS_northern_boundary.shp",
+                   layer = "ERS_northern_boundary")
+lim_ers <- spTransform(lim_ers, CRS("+proj=longlat +ellps=WGS84 +datum=WGS84"))
+
+lim_err <- readOGR(dsn = "shp/ERR_northern_boundary.shp",
+                   layer = "ERR_northern_boundary")
+lim_err <- spTransform(lim_err, CRS("+proj=longlat +ellps=WGS84 +datum=WGS84"))
+
+lim_boj <- readOGR(dsn = "shp/BOJ_northern_boundary.shp",
+                   layer = "BOJ_northern_boundary")
+lim_boj <- spTransform(lim_boj, CRS("+proj=longlat +ellps=WGS84 +datum=WGS84"))
+
+lims <- raster::bind(lim_ers, lim_err, lim_boj)
+
+dom_bio_map <- subset(dom_bio, dom_bio$DOM_BIO %in% c("4", "5"))
+
+dom_bio_map <- spTransform(dom_bio_map, CRS("+proj=longlat +ellps=WGS84 +datum=WGS84"))
+
+canada <- sf::st_as_sf(map('world', regions="canada", plot = FALSE, fill = TRUE))
+world <- sf::st_as_sf(map('world', plot = FALSE, fill = TRUE))
+
+lim_bio <- dom_bio_map@bbox
+
+dom_bio_map <- st_as_sf(dom_bio_map) 
+
+dom_bio_map  = st_sf(
+  aggregate(
+    dom_bio_map,
+    by=list(DOM_BIO=dom_bio_map$DOM_BIO),
+    FUN=function(vals){vals[1]}))
+
+lims <- st_as_sf(lims)
+lims$Species <- c("Sugar maple", "Red maple", "Yellow birch")
+
+color_blind <- c('black','#EE7733', '#0077BB', "#009E73", "#F0E442", '#33BBEE', '#EE3377', '#CC3311', '#009988', '#AA4499') #https://stackoverflow.com/questions/57153428/r-plot-color-combinations-that-are-colorblind-accessible
+                       
+# color_blind <- unname(palette.colors(palette = "Okabe-Ito"))
+# unname(palette.colors(palette = "Okabe-Ito"))
+# "#000000" "#E69F00" "#56B4E9" "#009E73" "#F0E442" "#0072B2" "#D55E00" "#CC79A7" "#999999"
+
+data <- filter(data, ID=="FERLD")
+
+city <- data.frame(lat=c(48.240159573340556,48.4283216292837, 46.812053590231876), 
+                    long=c(-79.06310652099977, -71.06108542399473, -71.22425987422862), 
+                    ID=c("Rouyn-Noranda", "Saguenay", "Quebec city"))
+
+
+main <- ggplot()+ geom_sf(data = canada) +
+  geom_sf(data=dom_bio_map, aes(fill=DOM_BIO.1), alpha=0.6) +
+  scale_fill_manual(values=c(color_blind[5], color_blind[4]),
+                    breaks = c("4", "5"),
+                    labels = c("Temperate mixedwood forest", "Boreal mixedwood forest")) +
+  labs(fill=" ") +
+  geom_sf(data=lims, aes(color=Species), linewidth=3) +
+  labs(color="Continuous northern\ndistribution limit") +
+  scale_color_manual(values=c(color_blind[2], color_blind[3], color_blind[10])) + 
+  new_scale_color() + 
+  geom_point(data=data, aes(x=long, y=lat, color=ID), size=5)+
+  geom_point(data=city, aes(x=long, y=lat), shape=15)+
+  geom_text(data=city, aes(x=long, y=lat, label = ID), hjust=-0.05, vjust=0.3) +
+  scale_color_manual(values=c(color_blind[1], color_blind[2])) +
+  # geom_text(data=data, aes(x=long, y=lat, label=plot_name)) +
+  labs(color="Study area")+
+  coord_sf(xlim = c(lim_bio[1,1]+0.45, lim_bio[1,2]+lim_bio[1,2]/7), ylim = c(lim_bio[2,1], lim_bio[2,2]-0.4), expand=T) +
+  theme_bw() +
+  theme(legend.position="bottom", legend.box="vertical", legend.margin=margin()) +
+  annotation_north_arrow(location = "bl", which_north = "true", 
+                         pad_x = unit(0.05, "in"), pad_y = unit(0.15, "in"),
+                         style = north_arrow_fancy_orienteering) +
+  annotation_scale(location = "bl", width_hint = 0.35, height = unit(0.1, "cm")) +
+  xlab("Latitude") +
+  ylab("Longitude")+
+  theme(legend.title.align = 0.5,
+    panel.background = element_rect(fill = "dodgerblue3"),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(),
+    axis.title.x=element_blank(),
+    axis.title.y=element_blank(),
+    axis.text = element_text(size = 14),
+    axis.title = element_text(size = 15),
+    legend.text = element_text(size = 14),
+    legend.title = element_text(size = 15),
+    legend.key=element_blank(),
+    strip.text = element_text(size = 12),
+    plot.title = element_text(size = 16)
+  ) +
+  guides(color=guide_legend(override.aes=list(fill=NA)))
+
+countries <- data.frame(lat=c(51.66781288717857, 38.99658150626441),
+                        long=c(-90.42096831020812, -88.50786675658247),
+                        country=c("Canada", "USA"))
+
+emprise <- ggplot(data=world) +
+  geom_sf() +
+  geom_text(data=countries, aes(x=long, y=lat, label=country), size=2.5)+
+  #???coord_sf(xlim = c(lim_bio[1,1], lim_bio[1,2]+lim_bio[1,2]/7), ylim = c(lim_bio[2,1], lim_bio[2,2]), expand = FALSE) +
+  coord_sf(xlim = c(-99, -51), ylim = c(30, 62), expand = FALSE) +
+  theme_void() +
+  annotate("rect", xmin = lim_bio[1,1]+0.45, xmax = lim_bio[1,2]+lim_bio[1,2]/7, ymin = lim_bio[2,1], ymax = lim_bio[2,2]-0.4,
+           alpha = .6, fill = "grey50", color="black",size=0.5) +
+  theme(
+    panel.background = element_rect(fill = "dodgerblue3"),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(),
+    panel.border = element_rect(color = "black",
+                                    fill = NA,
+                                    size = 1))
+
+
+
+map <-
+  ggdraw() +
+  draw_plot(main) +
+  draw_plot(emprise, x=0.83, y=0.7, width=.15, height=.15)
+
+#Maintenant la carte de la FERLD
+ferld_contour <- st_read("shp/FERLD_Contour.shp")
+chemin <- st_read("shp/Chemins_FERLD_2022_ajour.shp")
+MH <- st_read("shp/Milieux_Humides.shp")
+ruisseaux <- st_read("shp/ruisseau3.shp")
+lacs <- st_read("shp/eau_inond3.shp")
+feux <- st_read("shp/FERLD_Feux.shp") %>% 
+  filter(DATE_FEU %in% c(1760, 1823, 1923, 1964)) %>% 
+  mutate(DATE_FEU=as.character(DATE_FEU))
+
+feux2 <- st_read("shp/firemapkafka_mtm10.shp") %>% 
+  filter(CLASSE1 %in% c(1964)) %>% 
+  slice(1) %>% 
+  mutate(CLASSE1=as.character(CLASSE1))
+
+lim1 <- st_bbox(ferld_contour)
+lim2 <- st_bbox(feux2)
+
+feux$DATE_FEU  <- factor(feux$DATE_FEU, 
+                       levels = c("1760", "1823", "1923", "1964"),
+                       labels = c("1760", "1823", "1923", "1964"))
+
+
+ferld <- ggplot()+
+  geom_sf(data=feux, aes(fill=as.character(DATE_FEU))) +
+  geom_sf(data=feux2, aes(fill=as.character(CLASSE1))) +
+  scale_fill_viridis_d("Fire year", option="plasma") +
+  geom_sf(data=chemin) +
+  geom_sf(data=MH, color="deepskyblue") +
+  geom_sf(data=ruisseaux, color="deepskyblue") +
+  geom_sf(data=lacs, fill="deepskyblue") +
+  coord_sf(xlim = c(lim1[1], lim1[3]), ylim = c(lim1[2], lim2[4]), expand=T) +
+  annotation_north_arrow(location = "bl", which_north = "true", 
+                         pad_x = unit(0.05, "in"), pad_y = unit(0.15, "in"),
+                         style = north_arrow_fancy_orienteering) +
+  annotation_scale(location = "bl", width_hint = 0.35, height = unit(0.1, "cm"))+
+  theme(legend.title.align = 0.5,
+        panel.background = element_rect(fill = "white"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text = element_text(size = 14),
+        axis.title = element_text(size = 15),
+        legend.text = element_text(size = 14),
+        legend.title = element_text(size = 15),
+        strip.text = element_text(size = 12),
+        plot.title = element_text(size = 16),
+        legend.position="bottom"
+  ) + ggtitle(" FERLD territory")
+
+
+pdf(file="../figures/map_ferld.pdf",  width=14, height=5.5)
+ggarrange(map, ferld, labels=c("A", "B"), font.label = list(size = 20))
+dev.off()
+
+#modify on inkscape
