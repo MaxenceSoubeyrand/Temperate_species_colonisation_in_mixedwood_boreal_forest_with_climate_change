@@ -16,6 +16,8 @@ Initial conditions from Lake Duparquet Research and Teaching Forest (FERLD):
 
 - Initial conditions for harvested stands: Brais, S., Work, T., Robert, É., O’Connor, C., Strukelj, M., Bose, A., Celentano, D., & Harvey, B. (2013). Ecosystem Responses to Partial Harvesting in Eastern Boreal Mixedwood Stands. Forests, 4(2), 364–385. https://doi.org/10.3390/f4020364
 
+Simulation results are available upon request at [maxence.soubeyrand@uqat.ca](maxence.soubeyrand@uqat.ca).
+
 ## R packages required
 
 - The following [tidyverse](https://www.tidyverse.org) packages: 
