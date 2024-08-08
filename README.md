@@ -4,7 +4,7 @@ This repository contains the R code and data to retrieve the results and graphs 
 
 ## Citation 
 
-Soubeyrand M., Gennaretti F., Blarquez O., Bergeron Y., Grondin P. and Marchand P. (submitted) Effect of climate and competition on future northward migration of temperate tree species into mixedwood boreal forest. *Ecosphere*
+Soubeyrand M., Gennaretti F., Brice M.H., Bergeron Y., Grondin P. and Marchand P. (submitted) Increase in young forests, more than climate change may accelerate future colonization of temperate tree species in mixedwood boreal stands . *Ecological Modelling*
 
 Please cite this article for any work that re-uses this code.
 
@@ -31,4 +31,4 @@ Initial conditions from Lake Duparquet Research and Teaching Forest (FERLD):
 We thank the Natural Science and Engineering Research Council of Canada to support financially the project. This research was enabled in part by computer resources provided by [Digital Research Alliance of Canada](https://www.alliancecan.ca/en). We thank anonymous reviewers from Corrige-moi UQAT students’ group for critical revision and suggestions on the manuscript. 
 
 ## Notes 
-We used the computing resources of the Digital Research Alliance of Canada to execute the Bayesian models, and the simulations with SORTIE-ND.
+We used the computing resources of the Digital Research Alliance of Canada to execute the simulations with SORTIE-ND.
